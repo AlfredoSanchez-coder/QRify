@@ -225,23 +225,40 @@
     <script src="assets/js/main.js"></script>
 
     <!-- QR Scanner JS -->
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
         // Inicializar el escáner de QR
         const scanner = new Html5Qrcode("scannerContainer");
 
-        // Obtener las cámaras disponibles y poblar el menú de selección
-        Html5Qrcode.getCameras().then(devices => {
+        // Función para obtener y actualizar las cámaras disponibles en el select
+        async function updateCameraOptions() {
             const cameraSelection = document.getElementById('cameraSelection');
-            devices.forEach(device => {
-                const option = document.createElement('option');
-                option.value = device.id;
-                option.text = device.label;
-                cameraSelection.appendChild(option);
-            });
-        }).catch(err => {
-            console.error(`Error getting cameras: ${err}`);
-        });
+
+            try {
+                // Obtener todas las cámaras disponibles
+                const devices = await navigator.mediaDevices.enumerateDevices();
+
+                // Filtrar solo las cámaras de video
+                const cameras = devices.filter(device => device.kind === 'videoinput');
+
+                // Limpiar opciones actuales
+                cameraSelection.innerHTML = '<option value="" disabled selected>Seleccionar Cámara</option>';
+
+                // Agregar opciones al select
+                cameras.forEach(camera => {
+                    const option = document.createElement('option');
+                    option.value = camera.deviceId;
+                    option.text = camera.label || `Cámara ${camera.deviceId}`;
+                    cameraSelection.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error getting cameras:', error);
+                // Manejar el error según sea necesario
+            }
+        }
+
+        // Llamar a la función para actualizar las opciones al cargar la página
+        document.addEventListener('DOMContentLoaded', updateCameraOptions);
 
         // Manejar el evento de click del botón para iniciar el escaneo
         document.getElementById('startScanBtn').addEventListener('click', function () {
@@ -284,4 +301,4 @@
 
 </body>
 
-</html> Ya me dejo unirme  creo que asi fue mas facil
+</html>
